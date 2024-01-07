@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
@@ -15,17 +15,18 @@ export const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  const [per_page, setPer_page] = useState(12);
   const [query, setQuery] = useState('');
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [modalData, setModalData] = useState(null);
 
-  const fetchImages = async () => {
+  const perPage = 12;
+
+  const fetchImages = useCallback(async () => {
     try {
       setIsLoading(true);
 
       const { data } = await axios.get(
-        `?key=39583334-643e1265d57bd4d698c546928&image_type=photo&orientation=horizontal&per_page=${per_page}&q=${query}&page=${page}`
+        `?key=39583334-643e1265d57bd4d698c546928&image_type=photo&orientation=horizontal&per_page=${perPage}&q=${query}&page=${page}`
       );
 
       setLastImages(data.hits);
@@ -35,7 +36,7 @@ export const App = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, query]);
 
   const handleSearchInput = query => {
     setImgData([]);
@@ -46,7 +47,7 @@ export const App = () => {
   useEffect(() => {
     handleSearchInput(query);
     fetchImages(query);
-  }, [query]);
+  }, [query, fetchImages]);
 
   const handleButton = () => {
     setPage(prevState => prevState + 1);
