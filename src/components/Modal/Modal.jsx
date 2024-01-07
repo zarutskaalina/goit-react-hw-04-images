@@ -1,40 +1,44 @@
-import { Component } from 'react';
 import { StyledModal } from './ModalStyles';
 import { ImageGalleryItem } from '../ImageGallery/ImageGalleryItem';
+import { useEffect } from 'react';
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
+export const Modal = ({ modalData, closeModal }) => {
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
+  // componentDidMount() {
+  //   window.addEventListener('keydown', this.handleKeyDown);
+  // }
 
-  handleKeyDown = e => {
+  // componentWillUnmount() {
+  //   window.removeEventListener('keydown', this.handleKeyDown);
+  // }
+
+  const handleKeyDown = e => {
     if (e.key === 'Escape') {
-      this.props.closeModal();
+      closeModal();
     }
   };
 
-  handleOverlayClick = e => {
+  const handleOverlayClick = e => {
     if (e.target === e.currentTarget) {
-      this.props.closeModal();
+      closeModal();
     }
   };
 
-  render() {
-    const { modalData } = this.props;
-    return (
-      <StyledModal onClick={this.handleOverlayClick}>
-        <div className="modal">
-          <ImageGalleryItem
-            id={modalData.id}
-            largeImageURL={modalData.largeImageURL}
-            tags={modalData.tags}
-          />
-        </div>
-      </StyledModal>
-    );
-  }
-}
+  return (
+    <StyledModal onClick={handleOverlayClick}>
+      <div className="modal">
+        <ImageGalleryItem
+          id={modalData.id}
+          largeImageURL={modalData.largeImageURL}
+          tags={modalData.tags}
+        />
+      </div>
+    </StyledModal>
+  );
+};

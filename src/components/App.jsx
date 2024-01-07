@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
@@ -9,105 +9,75 @@ import { ErrorMessage } from './Styles';
 
 axios.defaults.baseURL = 'https://pixabay.com/api/';
 
-export class App extends Component {
-  state = {
-    imgData: null,
-    lastImages: [],
-    isLoading: false,
-    error: null,
-    page: 1,
-    per_page: 12,
-    query: '',
-    isOpenModal: false,
-    modalData: null,
-  };
+export const App = () => {
+  const [imgData, setImgData] = useState(null);
+  const [lastImages, setLastImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [per_page, setPer_page] = useState(12);
+  const [query, setQuery] = useState('');
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [modalData, setModalData] = useState(null);
 
-  fetchImages = async query => {
+  const fetchImages = async () => {
     try {
-      this.setState({
-        isLoading: true,
-      });
+      setIsLoading(true);
 
       const { data } = await axios.get(
-        `?key=39583334-643e1265d57bd4d698c546928&image_type=photo&orientation=horizontal&per_page=${this.state.per_page}&q=${query}&page=${this.state.page}`
+        `?key=39583334-643e1265d57bd4d698c546928&image_type=photo&orientation=horizontal&per_page=${per_page}&q=${query}&page=${page}`
       );
 
-      this.setState(prevState => ({
-        imgData: [...prevState.imgData, ...data.hits],
-        lastImages: data.hits,
-      }));
+      setLastImages(data.hits);
+      setImgData(prevState => [...prevState, ...data.hits]);
     } catch (error) {
-      this.setState({ error: error.message });
+      setError(error.message);
     } finally {
-      this.setState({
-        isLoading: false,
-      });
+      setIsLoading(false);
     }
   };
 
-  handleSearchInput = query => {
-    this.setState({ imgData: [], page: 1, query });
+  const handleSearchInput = query => {
+    setImgData([]);
+    setPage(1);
+    setQuery(query);
   };
 
-  componentDidUpdate(_, prevState) {
-    const { query } = this.state;
+  useEffect(() => {
+    handleSearchInput(query);
+    fetchImages(query);
+  }, [query]);
 
-    if (prevState.query !== query) {
-      this.handleSearchInput(query);
-      this.fetchImages(query);
-    }
-  }
-
-  handleButton = () => {
-    const { query } = this.state;
-    this.setState(
-      prevState => ({
-        page: prevState.page + 1,
-        isLoading: true,
-      }),
-      () => {
-        this.fetchImages(query);
-      }
-    );
+  const handleButton = () => {
+    setPage(prevState => prevState + 1);
+    setIsLoading(true);
+    fetchImages(query);
   };
 
-  openModal = someDataToModal => {
-    this.setState({
-      isOpenModal: true,
-      modalData: someDataToModal,
-    });
+  const openModal = someDataToModal => {
+    setIsOpenModal(true);
+    setModalData(someDataToModal);
   };
 
-  closeModal = () => {
-    this.setState({
-      isOpenModal: false,
-      modalData: null,
-    });
+  const closeModal = () => {
+    setIsOpenModal(false);
+    setModalData(null);
   };
 
-  render() {
-    const { imgData, isLoading, error, isOpenModal, lastImages } = this.state;
-
-    return (
-      <div>
-        <Searchbar handleSearchInput={this.handleSearchInput} />
-        {error !== null && (
-          <ErrorMessage>
-            <b>Sorry, an error occurred {error}!</b>
-          </ErrorMessage>
-        )}
-        <ImageGallery imgData={imgData} openModal={this.openModal} />
-        {isLoading && <Loader />}
-        {!error && !isLoading && imgData && lastImages.length >= 12 && (
-          <Button handleButton={this.handleButton} />
-        )}
-        {isOpenModal && (
-          <Modal
-            closeModal={this.closeModal}
-            modalData={this.state.modalData}
-          />
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <Searchbar handleSearchInput={handleSearchInput} />
+      {error !== null && (
+        <ErrorMessage>
+          <b>Sorry, an error occurred {error}!</b>
+        </ErrorMessage>
+      )}
+      <ImageGallery imgData={imgData} openModal={openModal} />
+      {isLoading && <Loader />}
+      {!error && !isLoading && imgData && lastImages.length >= 12 && (
+        <Button handleButton={handleButton} />
+      )}
+      {isOpenModal && <Modal closeModal={closeModal} modalData={modalData} />}
+    </div>
+  );
+};
