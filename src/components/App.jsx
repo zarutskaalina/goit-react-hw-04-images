@@ -21,22 +21,25 @@ export const App = () => {
 
   const perPage = 12;
 
-  const fetchImages = useCallback(async () => {
-    try {
-      setIsLoading(true);
+  const fetchImages = useCallback(
+    async (query, newPage) => {
+      try {
+        setIsLoading(true);
 
-      const { data } = await axios.get(
-        `?key=39583334-643e1265d57bd4d698c546928&image_type=photo&orientation=horizontal&per_page=${perPage}&q=${query}&page=${page}`
-      );
+        const { data } = await axios.get(
+          `?key=39583334-643e1265d57bd4d698c546928&image_type=photo&orientation=horizontal&per_page=${perPage}&q=${query}&page=${newPage}`
+        );
 
-      setLastImages(data.hits);
-      setImgData(prevState => [...prevState, ...data.hits]);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, query]);
+        setLastImages(data.hits);
+        setImgData(prevState => [...prevState, ...data.hits]);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [perPage]
+  );
 
   const handleSearchInput = query => {
     setImgData([]);
@@ -50,9 +53,9 @@ export const App = () => {
   }, [query, fetchImages]);
 
   const handleButton = () => {
-    setPage(prevState => prevState + 1);
+    setPage(page + 1);
     setIsLoading(true);
-    fetchImages(query);
+    fetchImages(query, page + 1);
   };
 
   const openModal = someDataToModal => {
